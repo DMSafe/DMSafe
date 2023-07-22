@@ -2,23 +2,20 @@
 A plugin to track DMSafe Ranks & players who scam in Deathmatching.
 
 Feature List:
-- Access Data list end point to grab current usernames of ranks & scammers
-- See Rank & Scammer names + icons above their heads 
-- See Rank names on the minimap
-- Write in the chat box when a scammer is nearby
-- Join Discord Buttons
-- Display current CC Name
-- Built in Video Recorder
+- Access Data list end point to grab current usernames of Ranks & Scammers
+- Toggleable option to See Rank & Scammer names + icons above their heads 
+- Toggleable option to See Rank names on the minimap
+- Toggleable option to Write in the chat box when a scammer is nearby
 - HWID & Account ID Tracking
-- 
-- Features (Thanks to StonedTurtle for making the Party Hub P)
-- Join Party Button
+- Display current CC Name
+- Join & Leave Party Buttons
+- Join Discord Button
+- DMSafe Party Button
+- Logs Button
 - View Prayers
 - View Skills & Boosts
 - View Equipment
 - View Inventory
-
-To-do List:
-- Challenge in DM on user right click to automatically join a Party
-- Party passphrases (challenge will just write bot RSNs in & collect IDs of both players)
-- View Player Icon on the side, defaulting to just Deathmatcher icon if they are not in the system
+- Deathmatch on user right click to automatically join a Party
+- Party passphrases (challenge will just write both RSNs in & collect IDs of both players)
+- Displays what Rank someone is in the Plugin on Challenge
