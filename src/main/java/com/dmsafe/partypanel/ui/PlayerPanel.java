@@ -201,6 +201,10 @@ public class PlayerPanel extends JPanel {
             banner.recreatePanel(plugin);
         }
 
+        if (player.getStats() != null) {
+            banner.refreshStats();
+        }
+
         BufferedImage heart = null;
         if (player.getPoison() >= VENOM_THRESHOLD) {
             heart = HEART_VENOM;

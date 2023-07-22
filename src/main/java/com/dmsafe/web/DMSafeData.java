@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 
@@ -26,7 +27,15 @@ public class DMSafeData implements Runnable {
 
     private final DMSafePlugin plugin;
 
+    private URL url;
+    private Gson gson;
+
     public DMSafeData(DMSafePlugin plugin) {
+        try {
+            url = new URL(DATA_ENDPOINT);
+        } catch (MalformedURLException e) {
+            log.info("Failed to obtain Data Endpoint URL.");
+        }
         this.plugin = plugin;
     }
 
@@ -35,8 +44,6 @@ public class DMSafeData implements Runnable {
             while (isRunning) {
                 if (readyToSendAnotherRequest()) {
                     lastConnectionRequest = System.currentTimeMillis();
-
-                    URL url = new URL(DATA_ENDPOINT);
                     BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
                     StringBuilder sb = new StringBuilder();
                     String line;
@@ -46,7 +53,7 @@ public class DMSafeData implements Runnable {
                     line = sb.toString();
                     line = "[{" + line.substring(12, line.length() - 1);
                     try {
-                        Gson gson = new Gson();
+                        gson = new Gson();
                         dmers = gson.fromJson(line, Deathmatcher[].class);
                     } catch (Exception e) {
                         log.error(new Date() + " - Exception obtaining Deathmatchers: " + e.getMessage());
@@ -60,7 +67,7 @@ public class DMSafeData implements Runnable {
     }
 
     private boolean readyToSendAnotherRequest() {
-        return System.currentTimeMillis() >= lastConnectionRequest + 5000;
+        return System.currentTimeMillis() >= lastConnectionRequest + 60000;
     }
 
     public boolean rsnInTheSystem(String username) {

@@ -189,23 +189,28 @@ public class DMSafePlugin extends Plugin {
         discord.setUsername(DMSAFE_NAME);
     }
 
+    private Thread colorScammersCC;
     private void colorScammersCC(Color color) {
+        if (colorScammersCC == null || !colorScammersCC.isAlive()) {
+            colorScammersCC = new Thread(() -> {
+                Widget ccList = client.getWidget(WidgetInfo.FRIENDS_CHAT_LIST);
+                if (ccList == null || ccList.getChildren() == null) {
+                    return;
+                }
 
-        Widget ccList = client.getWidget(WidgetInfo.FRIENDS_CHAT_LIST);
-        if (ccList == null || ccList.getChildren() == null) {
-            return;
-        }
-
-        for (int i = 0; i < ccList.getChildren().length; i += 3) {
-            Widget listWidget = ccList.getChild(i);
-            String memberName = listWidget.getText();
-            if (memberName.isEmpty()) {
-                continue;
-            }
-            boolean localScammerLoaded = localDeathmatchers.containsKey(memberName) && localDeathmatchers.get(memberName).getRank().equals(SCAMMER_NAME);
-            if (localScammerLoaded || data.getDmerRank(memberName).equals(SCAMMER_NAME)) {
-                listWidget.setTextColor(color.getRGB());
-            }
+                for (int i = 0; i < ccList.getChildren().length; i += 3) {
+                    Widget listWidget = ccList.getChild(i);
+                    String memberName = listWidget.getText();
+                    if (memberName.isEmpty()) {
+                        continue;
+                    }
+                    boolean localScammerLoaded = localDeathmatchers.containsKey(memberName) && localDeathmatchers.get(memberName).getRank().equals(SCAMMER_NAME);
+                    if (localScammerLoaded || data.getDmerRank(memberName).equals(SCAMMER_NAME)) {
+                        listWidget.setTextColor(color.getRGB());
+                    }
+                }
+            });
+            colorScammersCC.start();
         }
     }
 
@@ -231,56 +236,61 @@ public class DMSafePlugin extends Plugin {
         clientThread.invoke(() -> colorScammersCC(Color.WHITE));
     }
 
+    private Thread menuEntryThread;
     @Subscribe
     public void onClientTick(ClientTick clientTick) {
         if (client.isMenuOpen()) {
             return;
         }
+        if (menuEntryThread == null || !menuEntryThread.isAlive()) {
+            menuEntryThread = new Thread(() -> {
+                MenuEntry[] menuEntries = client.getMenuEntries();
 
-        MenuEntry[] menuEntries = client.getMenuEntries();
+                for (MenuEntry entry : menuEntries) {
+                    MenuAction type = entry.getType();
 
-        for (MenuEntry entry : menuEntries) {
-            MenuAction type = entry.getType();
+                    if (type == WALK
+                            || type == WIDGET_TARGET_ON_PLAYER
+                            || type == ITEM_USE_ON_PLAYER
+                            || type == PLAYER_FIRST_OPTION
+                            || type == PLAYER_SECOND_OPTION
+                            || type == PLAYER_THIRD_OPTION
+                            || type == PLAYER_FOURTH_OPTION
+                            || type == PLAYER_FIFTH_OPTION
+                            || type == PLAYER_SIXTH_OPTION
+                            || type == PLAYER_SEVENTH_OPTION
+                            || type == PLAYER_EIGHTH_OPTION
+                            || type == RUNELITE_PLAYER) {
+                        Player[] players = client.getCachedPlayers();
+                        Player player = null;
 
-            if (type == WALK
-                    || type == WIDGET_TARGET_ON_PLAYER
-                    || type == ITEM_USE_ON_PLAYER
-                    || type == PLAYER_FIRST_OPTION
-                    || type == PLAYER_SECOND_OPTION
-                    || type == PLAYER_THIRD_OPTION
-                    || type == PLAYER_FOURTH_OPTION
-                    || type == PLAYER_FIFTH_OPTION
-                    || type == PLAYER_SIXTH_OPTION
-                    || type == PLAYER_SEVENTH_OPTION
-                    || type == PLAYER_EIGHTH_OPTION
-                    || type == RUNELITE_PLAYER) {
-                Player[] players = client.getCachedPlayers();
-                Player player = null;
+                        int identifier = entry.getIdentifier();
 
-                int identifier = entry.getIdentifier();
+                        if (type == WALK) {
+                            identifier--;
+                        }
 
-                if (type == WALK) {
-                    identifier--;
+                        if (identifier >= 0 && identifier < players.length) {
+                            player = players[identifier];
+                        }
+
+                        if (player == null) {
+                            continue;
+                        }
+
+                        PlayerNameService.Decorations decorations = playerIndicatorsService.getDecorations(player);
+                        if (decorations == null) {
+                            continue;
+                        }
+
+                        String oldTarget = entry.getTarget();
+                        String newTarget = decorateTarget(oldTarget, decorations);
+
+                        entry.setTarget(newTarget);
+                    }
                 }
-
-                if (identifier >= 0 && identifier < players.length) {
-                    player = players[identifier];
-                }
-
-                if (player == null) {
-                    continue;
-                }
-
-                PlayerNameService.Decorations decorations = playerIndicatorsService.getDecorations(player);
-                if (decorations == null) {
-                    continue;
-                }
-
-                String oldTarget = entry.getTarget();
-                String newTarget = decorateTarget(oldTarget, decorations);
-
-                entry.setTarget(newTarget);
-            }
+            });
+            menuEntryThread.start();
         }
     }
 
@@ -350,55 +360,56 @@ public class DMSafePlugin extends Plugin {
         return Text.toJagexName(username).replaceAll(" ", "").toLowerCase();
     }
 
+    private Thread onMenuOptionClicked;
     @Subscribe
     public void onMenuOptionClicked(MenuOptionClicked event) {
         String option = event.getMenuOption();
         MenuAction action = event.getMenuAction();
+        if (onMenuOptionClicked == null || !onMenuOptionClicked.isAlive()) {
+            onMenuOptionClicked = new Thread(() -> {
+                if (action == MenuAction.RUNELITE_PLAYER && challengeActionClicked(option, action)) {
+                    String nameBeforeFormat = "";
+                    Player p = client.getCachedPlayers()[event.getId()];
+                    boolean playerNameExists = p != null && p.getName() != null;
 
-        new Thread(() -> {
-            log.info("onMenuOptionClicked Thread start.");
-            if (action == MenuAction.RUNELITE_PLAYER && challengeActionClicked(option, action)) {
-                String nameBeforeFormat = "";
-                Player p = client.getCachedPlayers()[event.getId()];
-                boolean playerNameExists = p != null && p.getName() != null;
+                    if (playerNameExists) {
+                        nameBeforeFormat = p.getName();
+                        opponentRSN = formatPartyName(p.getName());
+                    }
 
-                if (playerNameExists) {
-                    nameBeforeFormat = p.getName();
-                    opponentRSN = formatPartyName(p.getName());
-                }
+                    if (opponentRSN != null && client.getLocalPlayer().getName() != null) {
+                        log.info("Challenging " + nameBeforeFormat);
 
-                if (opponentRSN != null && client.getLocalPlayer().getName() != null) {
-                    log.info("Challenging " + nameBeforeFormat);
+                        if (isInParty()) {
+                            leaveParty();
+                            try {
+                                sleep(500);
+                            } catch (InterruptedException e) {
+                                log.info("Failed to Sleep whilst Deathmatching another opponent");
+                            }
+                        }
 
-                    if (isInParty()) {
-                        leaveParty();
-                        try {
-                            sleep(500);
-                        } catch (InterruptedException e) {
-                            log.info("Failed to Sleep whilst Deathmatching another opponent");
+                        displayNearbyScammers("Scammer Challenged: ", nameBeforeFormat);
+                        opponentRSN = formatPartyName(opponentRSN);
+                        String partyPhrase;
+                        String ourRSN = formatPartyName(client.getLocalPlayer().getName());
+                        int compare = opponentRSN.compareTo(ourRSN);
+                        partyPhrase = compare > 0 ? ourRSN + opponentRSN : opponentRSN + ourRSN;
+
+                        partyService.changeParty(partyPhrase);
+                        panel.updateParty();
+                        if (config.popupSidePanel()) {
+                            SwingUtilities.invokeLater(() -> {
+                                if (!navButton.isSelected()) {
+                                    navButton.getOnSelect().run();
+                                }
+                            });
                         }
                     }
-
-                    displayNearbyScammers("Scammer Challenged: ", nameBeforeFormat);
-                    opponentRSN = formatPartyName(opponentRSN);
-                    String partyPhrase;
-                    String ourRSN = formatPartyName(client.getLocalPlayer().getName());
-                    int compare = opponentRSN.compareTo(ourRSN);
-                    partyPhrase = compare > 0 ? ourRSN + opponentRSN : opponentRSN + ourRSN;
-
-                    partyService.changeParty(partyPhrase);
-                    panel.updateParty();
-                    if (config.popupSidePanel()) {
-                        SwingUtilities.invokeLater(() -> {
-                            if (!navButton.isSelected()) {
-                                navButton.getOnSelect().run();
-                            }
-                        });
-                    }
                 }
-            }
-            log.info("onMenuOptionClicked Thread end.");
-        }).start();
+            });
+            onMenuOptionClicked.start();
+        }
     }
 
     @Subscribe
@@ -640,36 +651,32 @@ public class DMSafePlugin extends Plugin {
         }
     }
 
+    private Thread onPlayerSpawnedThread;
     @Subscribe
     public void onPlayerSpawned(PlayerSpawned playerSpawned) {
-        if (!config.showScammerSpam()) {
-            return;
+        if (onPlayerSpawnedThread == null || !onPlayerSpawnedThread.isAlive()) {
+            onPlayerSpawnedThread = new Thread(() -> {
+                if (playerSpawned.getPlayer().getName() != null) {
+                    String username = Text.toJagexName(playerSpawned.getPlayer().getName());
+                    displayNearbyScammers("Scammer Spawned: ", username);
+                }
+            });
+            onPlayerSpawnedThread.start();
         }
-        new Thread(() -> {
-            if (playerSpawned.getPlayer().getName() != null) {
-                String username = Text.toJagexName(playerSpawned.getPlayer().getName());
-                displayNearbyScammers("Scammer Spawned: ", username);
-            }
-        }).start();
     }
 
     private void displayNearbyScammers(String option, String username) {
         try {
-            if (data.getDmers() == null) {
+            if (data.getDmers() == null || !config.showScammerSpam()) {
                 return;
             }
-            //log.info("Display nearby scammers called rsn: " + username);
             boolean scammerInLocalList = getLocalDeathmatchers().containsKey(username);
-            //log.info("In the list? " + scammerInLocalList);
             String dmerRankAndReason = data.getDmerRankAndReason(username);
-            //log.info("rank and reason: " + dmerRankAndReason + " rsn: " + username);
             boolean scammerInGlobalList = dmerRankAndReason.startsWith(SCAMMER_NAME);
             if (!scammerInLocalList && !scammerInGlobalList) {
                 return;
             }
-            //log.info(username + " was either in the local list or the global list");
             String reason = dmerRankAndReason.substring(dmerRankAndReason.indexOf(":") + 1);
-            //log.info("reason: " + reason);
             ChatMessageBuilder messageBuilder = new ChatMessageBuilder();
             messageBuilder.append(option).append(ChatColorType.HIGHLIGHT).append(username).append(ChatColorType.NORMAL).append(". Information: ").append(ChatColorType.HIGHLIGHT).append(reason).append(ChatColorType.NORMAL);
             chatMessageManager.queue(QueuedMessage.builder().type(ChatMessageType.CONSOLE).runeLiteFormattedMessage(messageBuilder.build()).build());
@@ -916,7 +923,6 @@ public class DMSafePlugin extends Plugin {
         panel.updateParty();
         if (!isInParty()) {
             panel.getPlayerPanelMap().clear();
-            log.info("Cleared a party.");
         }
     }
 
@@ -932,7 +938,6 @@ public class DMSafePlugin extends Plugin {
         if (isInParty()) {
             partyService.changeParty(null);
             panel.updateParty();
-            log.info("left a party.");
         }
     }
 
@@ -943,43 +948,43 @@ public class DMSafePlugin extends Plugin {
     @Getter
     private final HashMap<String, Deathmatcher> localDeathmatchers = new HashMap<>();
 
-    @Schedule(period = 500, unit = ChronoUnit.MILLIS)
+    private Thread addUsersToLogThread;
+    @Schedule(period = 10000, unit = ChronoUnit.MILLIS)
     public void addUsersToLog() {
         if (!isInParty()) {
             return;
         }
-        new Thread(() -> {
-
-
-            for (long memberID : partyMembers.keySet()) {
-                if (partyMembers.get(memberID) != null) {
-                    String hardwareID = partyMembers.get(memberID).getHardwareID();
-                    String accountID = partyMembers.get(memberID).getAccountID();
-                    String playerName = partyMembers.get(memberID).getUsername();
-                    Deathmatcher dmer = data.getDmer(playerName, hardwareID, accountID);
-                    if (!partyMembers.get(memberID).isDataLogged()) {
-                        send(new Date() + ":" + dmer.getRSN() + ":" + dmer.getHWID() + ":" + dmer.getAccountID() + ":" + dmer.getRank() + ":" + dmer.getInformation());
-                        partyMembers.get(memberID).setDataLogged(true);
-                    }
-                    if (data.showRankAboveHead(dmer.getRank()) && !data.rsnInTheSystem(playerName) && !localDeathmatchers.containsKey(playerName)) {
-                        localDeathmatchers.put(playerName, dmer);
-                        send(new Date() + ":" + dmer.getRSN() + ":" + dmer.getHWID() + ":" + dmer.getAccountID() + ":" + dmer.getRank() + ":" + dmer.getInformation());
-                        log.info("Added " + playerName + " to the local list. Rank: " + dmer.getRank() + " Info: " + dmer.getInformation());
-                    }
-                    if (localDeathmatchers.containsKey(playerName)) {
-                        boolean accountIDChanged = !localDeathmatchers.get(playerName).getAccountID().equals(dmer.getAccountID());
-                        boolean hardwareIDChanged = !localDeathmatchers.get(playerName).getHWID().equals(dmer.getHWID());
-                        boolean rankChanged = !localDeathmatchers.get(playerName).getRank().equals(dmer.getRank());
-                        boolean informationChanged = !localDeathmatchers.get(playerName).getInformation().equals(dmer.getInformation());
-                        if (accountIDChanged || hardwareIDChanged || rankChanged || informationChanged) {
-                            log.info("Updated " + playerName + " in the local list");
+        if (addUsersToLogThread == null || !addUsersToLogThread.isAlive()) {
+            addUsersToLogThread = new Thread(() -> {
+                for (long memberID : partyMembers.keySet()) {
+                    if (partyMembers.get(memberID) != null) {
+                        String hardwareID = partyMembers.get(memberID).getHardwareID();
+                        String accountID = partyMembers.get(memberID).getAccountID();
+                        String playerName = partyMembers.get(memberID).getUsername();
+                        Deathmatcher dmer = data.getDmer(playerName, hardwareID, accountID);
+                        if (!partyMembers.get(memberID).isDataLogged()) {
+                            send(new Date() + ":" + dmer.getRSN() + ":" + dmer.getHWID() + ":" + dmer.getAccountID() + ":" + dmer.getRank() + ":" + dmer.getInformation());
+                            partyMembers.get(memberID).setDataLogged(true);
+                        }
+                        if (data.showRankAboveHead(dmer.getRank()) && !data.rsnInTheSystem(playerName) && !localDeathmatchers.containsKey(playerName)) {
                             localDeathmatchers.put(playerName, dmer);
                             send(new Date() + ":" + dmer.getRSN() + ":" + dmer.getHWID() + ":" + dmer.getAccountID() + ":" + dmer.getRank() + ":" + dmer.getInformation());
                         }
+                        if (localDeathmatchers.containsKey(playerName)) {
+                            boolean accountIDChanged = !localDeathmatchers.get(playerName).getAccountID().equals(dmer.getAccountID());
+                            boolean hardwareIDChanged = !localDeathmatchers.get(playerName).getHWID().equals(dmer.getHWID());
+                            boolean rankChanged = !localDeathmatchers.get(playerName).getRank().equals(dmer.getRank());
+                            boolean informationChanged = !localDeathmatchers.get(playerName).getInformation().equals(dmer.getInformation());
+                            if (accountIDChanged || hardwareIDChanged || rankChanged || informationChanged) {
+                                localDeathmatchers.put(playerName, dmer);
+                                send(new Date() + ":" + dmer.getRSN() + ":" + dmer.getHWID() + ":" + dmer.getAccountID() + ":" + dmer.getRank() + ":" + dmer.getInformation());
+                            }
+                        }
                     }
                 }
-            }
-        }).start();
+            });
+            addUsersToLogThread.start();
+        }
     }
 
     private void send(String content) {
