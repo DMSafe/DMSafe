@@ -614,12 +614,12 @@ public class DMSafePlugin extends Plugin {
         }
 
         final int specialPercent = client.getVarpValue(VarPlayer.SPECIAL_ATTACK_PERCENT) / 10;
-        log.info(Text.toJagexName(myPlayer.getUsername()) + " Special Attack: " + specialPercent);
+        //log.info(Text.toJagexName(myPlayer.getUsername()) + " Special Attack: " + specialPercent);
         if (specialPercent != myPlayer.getStats().getSpecialPercent()) {
-            log.info(Text.toJagexName(myPlayer.getUsername()) + " SETTING Special Attack: " + specialPercent);
+            //log.info(Text.toJagexName(myPlayer.getUsername()) + " SETTING Special Attack: " + specialPercent);
             myPlayer.getStats().setSpecialPercent(specialPercent);
             currentChange.getM().add(new DMSafePartyMiscChange(DMSafePartyMiscChange.PartyMisc.S, specialPercent));
-            log.info(Text.toJagexName(myPlayer.getUsername()) + " SET COMPLETE SPECIAL Attack: " + specialPercent);
+            //log.info(Text.toJagexName(myPlayer.getUsername()) + " SET COMPLETE SPECIAL Attack: " + specialPercent);
         }
 
         if (event.getVarbitId() == Varbits.VENGEANCE_ACTIVE) {
