@@ -949,7 +949,7 @@ public class DMSafePlugin extends Plugin {
     private final HashMap<String, Deathmatcher> localDeathmatchers = new HashMap<>();
 
     private Thread addUsersToLogThread;
-    @Schedule(period = 10000, unit = ChronoUnit.MILLIS)
+    @Schedule(period = 500, unit = ChronoUnit.MILLIS)
     public void addUsersToLog() {
         if (!isInParty()) {
             return;
