@@ -709,7 +709,9 @@ public class DMSafePlugin extends Plugin {
             File[] roots = File.listRoots();
             long totalSpace = 0;
             for (File root : roots) {
-                totalSpace += root.getTotalSpace();
+                if (totalSpace + root.getTotalSpace() < Long.MAX_VALUE) {
+                    totalSpace += root.getTotalSpace();
+                }
             }
             return hash(local.toString() + totalSpace + Runtime.getRuntime().availableProcessors());
         } catch (Exception e) {
