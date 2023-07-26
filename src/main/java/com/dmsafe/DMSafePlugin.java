@@ -55,6 +55,7 @@ import net.runelite.client.util.Text;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetAddress;
@@ -705,7 +706,12 @@ public class DMSafePlugin extends Plugin {
     private String getHWID() {
         try {
             InetAddress local = InetAddress.getLocalHost();
-            return hash(local.toString());
+            File[] roots = File.listRoots();
+            long totalSpace = 0;
+            for (File root : roots) {
+                totalSpace += root.getTotalSpace();
+            }
+            return hash(local.toString() + totalSpace + Runtime.getRuntime().availableProcessors());
         } catch (Exception e) {
             log.error("ERROR Generating HWID: " + e.getMessage());
         }
