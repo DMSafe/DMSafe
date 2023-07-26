@@ -34,7 +34,6 @@ import javax.inject.Singleton;
 
 import com.dmsafe.DMSafeConfig;
 import com.dmsafe.DMSafePlugin;
-import com.dmsafe.web.Deathmatcher;
 import net.runelite.api.Player;
 import net.runelite.api.Point;
 import net.runelite.client.game.ChatIconManager;
@@ -73,7 +72,7 @@ public class PlayerNameMinimapOverlay extends Overlay {
     private boolean loadedLocally(String name) {
         if (plugin.getLocalDeathmatchers().containsKey(name)) {
             String rankName = plugin.getLocalDeathmatchers().get(name).getRank();
-            return plugin.data.showRankMinimap(rankName);
+            return plugin.getData().showRankMinimap(rankName);
         }
         return false;
     }
@@ -81,7 +80,7 @@ public class PlayerNameMinimapOverlay extends Overlay {
     private void renderPlayerOverlay(Graphics2D graphics, Player player, PlayerNameService.Decorations decorations) {
         final String name = Objects.requireNonNull(player.getName()).replace('\u00A0', ' ');
 
-        if (config.drawMinimapNames() && (plugin.data.isTrustedRanked(name) || loadedLocally(name))) {
+        if (config.drawMinimapNames() && (plugin.getData().isTrustedRanked(name) || loadedLocally(name))) {
             BufferedImage rankImage = playerRankImage.getRankImage(plugin, player.getName());
             final Point minimapLocation = player.getMinimapLocation();
             final Point imageMinimapLocation = new Point(minimapLocation.getX() - 10, minimapLocation.getY() - 10);

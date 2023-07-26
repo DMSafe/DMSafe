@@ -77,7 +77,7 @@ class PlayerNameService
             return null;
         }
 
-        Color color = plugin.data.getColor(Text.toJagexName(player.getName()));
+        Color color = plugin.getData().getColor(Text.toJagexName(player.getName()));
 
         FriendsChatRank rank = null;
         ClanTitle clanTitle = null;

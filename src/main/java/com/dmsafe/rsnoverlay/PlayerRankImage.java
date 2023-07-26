@@ -22,7 +22,7 @@ public class PlayerRankImage {
     }
 
     public BufferedImage getRankImage(DMSafePlugin plugin, String playerName) {
-        BufferedImage dmerRankImage = getImage(plugin.data.getDmerRank(playerName));
+        BufferedImage dmerRankImage = getImage(plugin.getData().getDmerRank(playerName));
 
         if (dmerRankImage == null) {
             Deathmatcher dmer = plugin.getLocalDeathmatchers().getOrDefault(playerName, new Deathmatcher("n/a", "n/a", playerName, DMER_NAME, DMER_NAME));

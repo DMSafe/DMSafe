@@ -3,10 +3,15 @@ package com.dmsafe.web;
 import com.dmsafe.DMSafePlugin;
 import com.google.gson.Gson;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.util.Text;
+import okhttp3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.awt.*;
 import java.io.*;
 import java.net.MalformedURLException;
@@ -15,22 +20,25 @@ import java.util.Date;
 
 import static com.dmsafe.DMSafePlugin.*;
 
-public class DMSafeData implements Runnable {
-    private static final Logger log = LoggerFactory.getLogger(DMSafePlugin.class);
+@Slf4j
+@Singleton
+public class DMSafeData {
     private static final String DATA_ENDPOINT = "https://dmsafely.com/api/deathmatchers";
     private long lastConnectionRequest = 0;
 
     @Getter
     private Deathmatcher[] dmers;
 
-    private boolean isRunning = true;
-
     private final DMSafePlugin plugin;
-
+    private final ClientThread clientThread;
+    private final OkHttpClient client;
     private URL url;
     private Gson gson;
 
-    public DMSafeData(DMSafePlugin plugin) {
+    @Inject
+    public DMSafeData(DMSafePlugin plugin, OkHttpClient client, ClientThread clientThread) {
+        this.clientThread = clientThread;
+        this.client = client;
         try {
             url = new URL(DATA_ENDPOINT);
         } catch (MalformedURLException e) {
@@ -39,30 +47,37 @@ public class DMSafeData implements Runnable {
         this.plugin = plugin;
     }
 
-    public void run() {
-        try {
-            while (isRunning) {
-                if (readyToSendAnotherRequest()) {
-                    lastConnectionRequest = System.currentTimeMillis();
-                    BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
-                    StringBuilder sb = new StringBuilder();
-                    String line;
-                    while ((line = in.readLine()) != null) {
-                        sb.append(line);
-                    }
-                    line = sb.toString();
-                    line = "[{" + line.substring(12, line.length() - 1);
-                    try {
+    public void updateData() {
+        if (readyToSendAnotherRequest()) {
+            Request dataRequest = new Request.Builder().url(DATA_ENDPOINT).build();
+            client.newCall(dataRequest).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    log.error(new Date() + " - Error Gathering DMSafe Data: " + e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) {
+                    try (response) {
+                        lastConnectionRequest = System.currentTimeMillis();
+                        BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+                        StringBuilder sb = new StringBuilder();
+                        String line;
+                        while ((line = in.readLine()) != null) {
+                            sb.append(line);
+                        }
+                        line = sb.toString();
+                        line = "[{" + line.substring(12, line.length() - 1);
+
                         gson = new Gson();
                         dmers = gson.fromJson(line, Deathmatcher[].class);
+
+                        in.close();
                     } catch (Exception e) {
-                        log.error(new Date() + " - Exception obtaining Deathmatchers: " + e.getMessage());
+                        log.info("Error Updating Deathmatching data");
                     }
-                    in.close();
                 }
-            }
-        } catch (Exception e) {
-            log.error(new Date() + " - Error Gathering DMSafe Data: " + e.getMessage());
+            });
         }
     }
 
@@ -154,7 +169,6 @@ public class DMSafeData implements Runnable {
     }
 
     public Color color(String rankName) {
-        ;
         switch (rankName) {
             case OWNER_NAME:
                 return new Color(48, 213, 200);

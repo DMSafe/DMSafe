@@ -155,7 +155,7 @@ public class PlayerBanner extends JPanel {
         } else {
             final String levelText = player.getStats() == null ? "" : " (level-" + player.getStats().getCombatLevel() + ")";
             usernameLabel.setText(player.getUsername() + levelText);
-            usernameLabel.setForeground(plugin.data.getColor(player.getUsername()));
+            usernameLabel.setForeground(plugin.getData().getColor(player.getUsername()));
             BufferedImage rankImage = playerRankImage.getRankImage(plugin, player.getUsername());
             usernameLabel.setIcon(new ImageIcon(rankImage));
         }

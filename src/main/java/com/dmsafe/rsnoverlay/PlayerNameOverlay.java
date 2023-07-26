@@ -77,8 +77,8 @@ public class PlayerNameOverlay extends Overlay {
             String playerName = Text.toJagexName(player.getName());
             Deathmatcher dmer = plugin.getLocalDeathmatchers().getOrDefault(Text.toJagexName(player.getName()), new Deathmatcher("n/a", "n/a", playerName, DMER_NAME, DMER_NAME));
             String localRSNsRank =dmer.getRank();
-            boolean showAboveHead = localRSNsRank != null && plugin.data.showRankAboveHead(localRSNsRank);
-            if (config.drawOverheadNames() && (plugin.data.showAboveHead(player.getName()) || showAboveHead)) {
+            boolean showAboveHead = localRSNsRank != null && plugin.getData().showRankAboveHead(localRSNsRank);
+            if (config.drawOverheadNames() && (plugin.getData().showAboveHead(player.getName()) || showAboveHead)) {
                 final int zOffset = player.getLogicalHeight() + PLAYER_OVERHEAD_TEXT_MARGIN;
                 final String name = Text.sanitize(Objects.requireNonNull(player.getName()));
                 Point textLocation = player.getCanvasTextLocation(graphics, name, zOffset);
