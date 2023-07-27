@@ -79,7 +79,6 @@ public class DMSafeData {
 
                         in.close();
                     } catch (Exception e) {
-                        log.info("Using URL: " + getEndpoint());
                         log.info("Error Updating Deathmatching data :" + e.getMessage());
                     }
                 }
