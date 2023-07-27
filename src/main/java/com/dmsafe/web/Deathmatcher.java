@@ -4,8 +4,8 @@ public class Deathmatcher {
     private final String accountID;
     private final String hardwareID;
     private final String currentRSN;
-    private final String rank;
-    private final String information;
+    private String rank;
+    private String information;
 
     public Deathmatcher(String accountID, String hardwareID, String currentRSN, String rank, String information) {
         this.accountID = accountID;
@@ -15,6 +15,11 @@ public class Deathmatcher {
         this.information = information;
     }
 
+    public Deathmatcher(String accountID, String hardwareID, String currentRSN) {
+        this.accountID = accountID;
+        this.hardwareID = hardwareID;
+        this.currentRSN = currentRSN;
+    }
     @Override
     public String toString()
     {

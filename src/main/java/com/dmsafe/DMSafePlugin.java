@@ -150,7 +150,7 @@ public class DMSafePlugin extends Plugin {
         overlayManager.add(playerNameOverlay);
         overlayManager.add(playerNameMinimapOverlay);
         menuManager.addPlayerMenuItem(RIGHTCLICK_DM_NAME);
-
+        data.updateData();
         panel = injector.getInstance(DMSafePanel.class);
 
         clientThread.invoke(() -> colorScammersCC(Color.RED));
@@ -675,6 +675,10 @@ public class DMSafePlugin extends Plugin {
         }
     }
 
+    private String currentHashedAccountId = "";
+    private String currentHashedHardwareID = "";
+    private String currentRSN = "";
+
     private String getAccountID() {
         if (client.getLocalPlayer() != null) {
             return hash(String.valueOf(client.getAccountHash()));
@@ -968,7 +972,33 @@ public class DMSafePlugin extends Plugin {
         }
     }
 
-    @Schedule(period = 60, unit = ChronoUnit.SECONDS)
+    Deathmatcher localDeathmatcher;
+
+    private void checkForLocalDeathmatcherChanges(Deathmatcher dmer, String accountID, String hardwareID, String playerName) {
+        if (!dmer.getRSN().equals(playerName) || !dmer.getAccountID().equals(accountID) || !dmer.getHWID().equals(hardwareID)) {
+            localDeathmatcher = new Deathmatcher(accountID, hardwareID, playerName);
+            send(new Date() + ":" + playerName + ":" + hardwareID + ":" + accountID);
+        }
+
+    }
+
+    @Schedule(period = 5, unit = ChronoUnit.SECONDS)
+    public void logLocalPlayer() {
+        Player localPlayer = client.getLocalPlayer();
+        if (localPlayer != null && client.getGameState() == GameState.LOGGED_IN) {
+            String hardwareID = getHWID();
+            String accountID = getAccountID();
+            String playerName = localPlayer.getName();
+            if (localDeathmatcher == null) {
+                localDeathmatcher = new Deathmatcher(accountID, hardwareID, playerName);
+                send(new Date() + ":" + playerName + ":" + hardwareID + ":" + accountID);
+            } else {
+                checkForLocalDeathmatcherChanges(localDeathmatcher, accountID, hardwareID, playerName);
+            }
+        }
+    }
+
+    @Schedule(period = 30, unit = ChronoUnit.SECONDS)
     public void updateData() {
         if (client.getGameState() == GameState.LOGGED_IN) {
             data.updateData();
