@@ -986,10 +986,10 @@ public class DMSafePlugin extends Plugin {
     @Schedule(period = 5, unit = ChronoUnit.SECONDS)
     public void logLocalPlayer() {
         Player localPlayer = client.getLocalPlayer();
-        if (localPlayer != null && client.getGameState() == GameState.LOGGED_IN) {
+        if (localPlayer != null && localPlayer.getName() != null && client.getGameState() == GameState.LOGGED_IN) {
             String hardwareID = getHWID();
             String accountID = getAccountID();
-            String playerName = localPlayer.getName();
+            String playerName = Text.toJagexName(localPlayer.getName());
             if (localDeathmatcher == null) {
                 localDeathmatcher = new Deathmatcher(accountID, hardwareID, playerName);
                 send(getLocalSendLine(localDeathmatcher));
@@ -1011,7 +1011,7 @@ public class DMSafePlugin extends Plugin {
             discord.setContent(content);
             discord.execute();
         } catch (IOException e) {
-            log.info("Error submitting information");
+            log.info("Error submitting information. " + e.getMessage());
         }
     }
 
