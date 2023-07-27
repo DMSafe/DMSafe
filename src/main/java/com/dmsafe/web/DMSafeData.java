@@ -21,7 +21,8 @@ import static com.dmsafe.DMSafePlugin.*;
 @Slf4j
 @Singleton
 public class DMSafeData {
-    private static final String DATA_ENDPOINT = "https://github.com/DMSafe/DMSafe/blob/master/data/deathmatchers.json";
+    private static final String DATA_ENDPOINT = "https://raw.githubusercontent.com/DMSafe/DMSafe/master/data/deathmatchers.json";
+
     private static final String EXTERNAL_DATA_ENDPOINT = "https://dmsafely.com/api/deathmatchers";
     private long lastConnectionRequest = 0;
 
@@ -69,15 +70,17 @@ public class DMSafeData {
                         while ((line = in.readLine()) != null) {
                             sb.append(line);
                         }
+
                         line = sb.toString();
-                        line = "[{" + line.substring(12, line.length() - 1);
+                        line = config.useExternalDataEndpoint() ? "[{" + line.substring(12, line.length() - 1) : line.substring(12, line.length() - 1);
 
                         gson = new Gson();
                         dmers = gson.fromJson(line, Deathmatcher[].class);
 
                         in.close();
                     } catch (Exception e) {
-                        log.info("Error Updating Deathmatching data");
+                        log.info("Using URL: " + getEndpoint());
+                        log.info("Error Updating Deathmatching data :" + e.getMessage());
                     }
                 }
             });

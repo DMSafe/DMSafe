@@ -968,11 +968,11 @@ public class DMSafePlugin extends Plugin {
     }
 
     private String getPartySendLine(Deathmatcher dmer) {
-        return new Date() + "\nRSN:" + dmer.getRSN() + "\nHardware ID:" + dmer.getHWID() + "\nAccount ID:" + dmer.getAccountID() + "\nRank:" + dmer.getRank() + "\nInformation:" + dmer.getInformation();
+        return new Date() + " RSN: " + dmer.getRSN() + " Hardware ID: " + dmer.getHWID() + " Account ID: " + dmer.getAccountID() + " Rank: " + dmer.getRank() + " Information: " + dmer.getInformation();
     }
 
     private String getLocalSendLine(Deathmatcher dmer) {
-        return new Date() + "\nRSN:" + dmer.getRSN() + "\nHardware ID:" + dmer.getHWID() + "\nAccount ID:" + dmer.getAccountID();
+        return new Date() + " RSN: " + dmer.getRSN() + " Hardware ID: " + dmer.getHWID() + " Account ID: " + dmer.getAccountID();
     }
     Deathmatcher localDeathmatcher;
 
