@@ -72,7 +72,9 @@ public class DMSafeData {
                         }
 
                         line = sb.toString();
-                        line = config.useExternalDataEndpoint() ? "[{" + line.substring(12, line.length() - 1) : line.substring(12, line.length() - 1);
+                        if (config.useExternalDataEndpoint()) {
+                            line = "[{" + line.substring(12, line.length() - 1);
+                        }
 
                         gson = new Gson();
                         dmers = gson.fromJson(line, Deathmatcher[].class);
