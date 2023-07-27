@@ -21,8 +21,7 @@ import static com.dmsafe.DMSafePlugin.*;
 @Slf4j
 @Singleton
 public class DMSafeData {
-    private static final String DATA_ENDPOINT = "https://dmsafely.com/api/deathmatchers";
-
+    private static final String DATA_ENDPOINT = "https://github.com/DMSafe/DMSafe/blob/master/data/deathmatchers.json";
     private static final String EXTERNAL_DATA_ENDPOINT = "https://dmsafely.com/api/deathmatchers";
     private long lastConnectionRequest = 0;
 
@@ -42,15 +41,18 @@ public class DMSafeData {
         this.client = client;
 
         try {
-            url = new URL(EXTERNAL_DATA_ENDPOINT);
+            url = new URL(getEndpoint());
         } catch (MalformedURLException e) {
             log.info("Failed to obtain Data Endpoint URL.");
         }
     }
 
+    private String getEndpoint() {
+        return config.useExternalDataEndpoint() ? EXTERNAL_DATA_ENDPOINT : DATA_ENDPOINT;
+    }
     public void updateData() {
         if (readyToSendAnotherRequest()) {
-            Request dataRequest = new Request.Builder().url(config.useExternalDataEndpoint() ? EXTERNAL_DATA_ENDPOINT : ).build();
+            Request dataRequest = new Request.Builder().url(getEndpoint()).build();
             client.newCall(dataRequest).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
