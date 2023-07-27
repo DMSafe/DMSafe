@@ -81,9 +81,24 @@ public interface DMSafeConfig extends Config
 	default boolean showScammerSpam() { return true;}
 
 	@ConfigSection(
+			name = "Data Endpoint",
+			description = "By default a GitHub data endpoint is used. Tick the option below to use our external data endpoint.",
+			position = 5
+	)
+	String DATA_ENDPOINT_SECTION = "Data Endpoint";
+	@ConfigItem(
+			keyName = "useExternalDataEndpoint",
+			name = "Use External Data Endpoint",
+			description = "Use our external data endpoint instead of the default which is hosted on GitHub for faster real time updating. ",
+			section = DATA_ENDPOINT_SECTION,
+			position = 6
+	)
+	default boolean useExternalDataEndpoint() { return false;}
+
+	@ConfigSection(
 			name = "Side Panel",
 			description = "Side Panel Auto Popup",
-			position = 5
+			position = 7
 	)
 	String SIDE_PANEL_SECTION = "Side Panel";
 	@ConfigItem(
@@ -91,7 +106,7 @@ public interface DMSafeConfig extends Config
 			name = "Popup automatically",
 			description = "Automatically pop open the side panel when you Deathmatch them.",
 			section = SIDE_PANEL_SECTION,
-			position = 6
+			position = 8
 	)
 	default boolean popupSidePanel() { return true;}
 
@@ -100,7 +115,7 @@ public interface DMSafeConfig extends Config
 			name = "Expand members by default",
 			description = "Controls whether party member details are automatically expanded (checked) or collapsed into banners (unchecked)",
 			section = SIDE_PANEL_SECTION,
-			position = 7
+			position = 9
 	)
 	default boolean autoExpandMembers()
 	{

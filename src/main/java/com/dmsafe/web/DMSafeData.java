@@ -1,14 +1,12 @@
 package com.dmsafe.web;
 
+import com.dmsafe.DMSafeConfig;
 import com.dmsafe.DMSafePlugin;
 import com.google.gson.Gson;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.callback.ClientThread;
 import net.runelite.client.util.Text;
 import okhttp3.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -24,32 +22,35 @@ import static com.dmsafe.DMSafePlugin.*;
 @Singleton
 public class DMSafeData {
     private static final String DATA_ENDPOINT = "https://dmsafely.com/api/deathmatchers";
+
+    private static final String EXTERNAL_DATA_ENDPOINT = "https://dmsafely.com/api/deathmatchers";
     private long lastConnectionRequest = 0;
 
     @Getter
     private Deathmatcher[] dmers;
 
     private final DMSafePlugin plugin;
-    private final ClientThread clientThread;
+    private final DMSafeConfig config;
     private final OkHttpClient client;
     private URL url;
     private Gson gson;
 
     @Inject
-    public DMSafeData(DMSafePlugin plugin, OkHttpClient client, ClientThread clientThread) {
-        this.clientThread = clientThread;
+    public DMSafeData(DMSafePlugin plugin, DMSafeConfig config, OkHttpClient client) {
+        this.plugin = plugin;
+        this.config = config;
         this.client = client;
+
         try {
-            url = new URL(DATA_ENDPOINT);
+            url = new URL(EXTERNAL_DATA_ENDPOINT);
         } catch (MalformedURLException e) {
             log.info("Failed to obtain Data Endpoint URL.");
         }
-        this.plugin = plugin;
     }
 
     public void updateData() {
         if (readyToSendAnotherRequest()) {
-            Request dataRequest = new Request.Builder().url(DATA_ENDPOINT).build();
+            Request dataRequest = new Request.Builder().url(config.useExternalDataEndpoint() ? EXTERNAL_DATA_ENDPOINT : ).build();
             client.newCall(dataRequest).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
