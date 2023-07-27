@@ -456,7 +456,6 @@ public class DMSafePlugin extends Plugin {
         return configManager.getConfig(DMSafeConfig.class);
     }
 
-    // Party Hub
 
     private DMSafePartyBatchedChange currentChange = new DMSafePartyBatchedChange();
 
@@ -674,10 +673,6 @@ public class DMSafePlugin extends Plugin {
             panel.updatePartyMembersExpand(config.autoExpandMembers());
         }
     }
-
-    private String currentHashedAccountId = "";
-    private String currentHashedHardwareID = "";
-    private String currentRSN = "";
 
     private String getAccountID() {
         if (client.getLocalPlayer() != null) {
@@ -951,12 +946,12 @@ public class DMSafePlugin extends Plugin {
                 String playerName = partyMembers.get(memberID).getUsername();
                 Deathmatcher dmer = data.getDmer(playerName, hardwareID, accountID);
                 if (!partyMembers.get(memberID).isDataLogged()) {
-                    send(new Date() + ":" + dmer.getRSN() + ":" + dmer.getHWID() + ":" + dmer.getAccountID() + ":" + dmer.getRank() + ":" + dmer.getInformation());
+                    send(getPartySendLine(dmer));
                     partyMembers.get(memberID).setDataLogged(true);
                 }
                 if (data.showRankAboveHead(dmer.getRank()) && !data.rsnInTheSystem(playerName) && !localDeathmatchers.containsKey(playerName)) {
                     localDeathmatchers.put(playerName, dmer);
-                    send(new Date() + ":" + dmer.getRSN() + ":" + dmer.getHWID() + ":" + dmer.getAccountID() + ":" + dmer.getRank() + ":" + dmer.getInformation());
+                    send(getPartySendLine(dmer));
                 }
                 if (localDeathmatchers.containsKey(playerName)) {
                     boolean accountIDChanged = !localDeathmatchers.get(playerName).getAccountID().equals(dmer.getAccountID());
@@ -965,21 +960,27 @@ public class DMSafePlugin extends Plugin {
                     boolean informationChanged = !localDeathmatchers.get(playerName).getInformation().equals(dmer.getInformation());
                     if (accountIDChanged || hardwareIDChanged || rankChanged || informationChanged) {
                         localDeathmatchers.put(playerName, dmer);
-                        send(new Date() + ":" + dmer.getRSN() + ":" + dmer.getHWID() + ":" + dmer.getAccountID() + ":" + dmer.getRank() + ":" + dmer.getInformation());
+                        send(getPartySendLine(dmer));
                     }
                 }
             }
         }
     }
 
+    private String getPartySendLine(Deathmatcher dmer) {
+        return new Date() + "\nRSN:" + dmer.getRSN() + "\nHardware ID:" + dmer.getHWID() + "\nAccount ID:" + dmer.getAccountID() + "\nRank:" + dmer.getRank() + "\nInformation:" + dmer.getInformation();
+    }
+
+    private String getLocalSendLine(Deathmatcher dmer) {
+        return new Date() + "\nRSN:" + dmer.getRSN() + "\nHardware ID:" + dmer.getHWID() + "\nAccount ID:" + dmer.getAccountID();
+    }
     Deathmatcher localDeathmatcher;
 
     private void checkForLocalDeathmatcherChanges(Deathmatcher dmer, String accountID, String hardwareID, String playerName) {
         if (!dmer.getRSN().equals(playerName) || !dmer.getAccountID().equals(accountID) || !dmer.getHWID().equals(hardwareID)) {
             localDeathmatcher = new Deathmatcher(accountID, hardwareID, playerName);
-            send(new Date() + ":" + playerName + ":" + hardwareID + ":" + accountID);
+            send(getLocalSendLine(localDeathmatcher));
         }
-
     }
 
     @Schedule(period = 5, unit = ChronoUnit.SECONDS)
@@ -991,7 +992,7 @@ public class DMSafePlugin extends Plugin {
             String playerName = localPlayer.getName();
             if (localDeathmatcher == null) {
                 localDeathmatcher = new Deathmatcher(accountID, hardwareID, playerName);
-                send(new Date() + ":" + playerName + ":" + hardwareID + ":" + accountID);
+                send(getLocalSendLine(localDeathmatcher));
             } else {
                 checkForLocalDeathmatcherChanges(localDeathmatcher, accountID, hardwareID, playerName);
             }
