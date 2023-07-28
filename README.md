@@ -2,7 +2,7 @@
 A plugin to track DMSafe Ranks & players who scam in Deathmatching.
 
 Feature List:
-- Access Data list end point to grab current usernames of Ranks & Scammers defaulting with GitHuh link 
+- Access Data list end point to grab current usernames of Ranks & Scammers defaulting with GitHub link 
 - Real time data updating by ticking the external data list option on the Config
 - Toggleable option to See Rank & Scammer names + icons above their heads 
 - Toggleable option to See Rank names on the minimap
