@@ -52,7 +52,7 @@ public class DMSafeData {
         return config.useExternalDataEndpoint() ? EXTERNAL_DATA_ENDPOINT : DATA_ENDPOINT;
     }
     public void updateData() {
-        if (readyToSendAnotherRequest()) {
+        if (config.useExternalDataEndpoint() || readyToSendAnotherRequest()) {
             Request dataRequest = new Request.Builder().url(getEndpoint()).build();
             client.newCall(dataRequest).enqueue(new Callback() {
                 @Override
